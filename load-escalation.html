@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head><title>Loading cards...</title></head>
+<body style="background:#1a1a2e;color:#eee;font-family:Georgia;display:flex;align-items:center;justify-content:center;height:100vh;">
+<h2>Loading cards into SuperMemo...</h2>
+<script>
+var cards = JSON.parse(localStorage.getItem('sm2_flashcards') || '[]');
+var today = new Date().toISOString().split('T')[0];
+var newCards = [
+  {front: "What is an escalation trap?", back: "A conflict where backing down is so costly that both sides keep fighting long past the point where continuing serves either side's interests."},
+  {front: "Why do escalation traps persist even when both sides are losing?", back: "Because the costs of being the party that backs down exceed the costs of continuing. Neither side can afford to be seen as the one who blinked."},
+  {front: "What are the three things both sides lose daily in an escalation trap?", back: "Wealth, power, and security. Every day makes both parties weaker, poorer, and less secure."},
+];
+newCards.forEach(function(c) {
+  cards.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    front: c.front,
+    back: c.back,
+    source: 'Devereaux (Escalation Traps)',
+    chapter: '',
+    tags: ['strategy', 'conflict', 'game-theory'],
+    ef: 2.5,
+    interval: 0,
+    repetitions: 0,
+    dueDate: today,
+    created: today,
+    lastReviewed: null,
+    totalReviews: 0
+  });
+});
+localStorage.setItem('sm2_flashcards', JSON.stringify(cards));
+window.location.href = 'index.html';
+</script>
+</body>
+</html>

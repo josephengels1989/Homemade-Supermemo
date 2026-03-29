@@ -193,7 +193,6 @@
     position: relative;
     border: 2px solid rgba(255,255,255,0.05);
     transition: border-color 0.2s;
-    margin-bottom: 24px;
     user-select: none;
   }
   .flashcard:hover { border-color: rgba(255,255,255,0.15); }
@@ -226,10 +225,16 @@
     font-size: 0.8rem;
     color: var(--text-dim);
   }
-  .card-edit-btn {
-    position: absolute;
-    bottom: 16px;
-    right: 20px;
+  .study-controls {
+    margin-top: 16px;
+  }
+  .card-action-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .card-action-btn {
     background: var(--surface2);
     border: 1px solid rgba(255,255,255,0.15);
     color: var(--text-dim);
@@ -239,9 +244,9 @@
     font-family: inherit;
     font-size: 0.75rem;
     transition: all 0.15s;
-    z-index: 10;
   }
-  .card-edit-btn:hover { background: var(--accent); color: white; }
+  .card-action-btn:hover { background: var(--accent); color: white; }
+  .card-action-btn.delete-btn:hover { background: var(--red); color: white; }
   .card-edit-textarea {
     width: 100%;
     max-width: 600px;
@@ -647,26 +652,32 @@
       <div class="card-book" id="card-book"></div>
       <div class="card-content" id="card-content">Click "Study Now" to begin</div>
       <div class="tap-hint" id="tap-hint">Click or press Space to reveal answer</div>
-      <button class="card-edit-btn" id="card-edit-btn" onclick="event.stopPropagation(); toggleEditMode()">Edit</button>
     </div>
 
-    <div class="rating-buttons" id="rating-buttons" style="display: none;">
-      <button class="rating-btn again" onclick="rateCard(0)">
-        <span>Again</span>
-        <span class="interval" id="interval-again"></span>
-      </button>
-      <button class="rating-btn hard" onclick="rateCard(3)">
-        <span>Hard</span>
-        <span class="interval" id="interval-hard"></span>
-      </button>
-      <button class="rating-btn good" onclick="rateCard(4)">
-        <span>Good</span>
-        <span class="interval" id="interval-good"></span>
-      </button>
-      <button class="rating-btn easy" onclick="rateCard(5)">
-        <span>Easy</span>
-        <span class="interval" id="interval-easy"></span>
-      </button>
+    <div class="study-controls" id="study-controls">
+      <div class="rating-buttons" id="rating-buttons" style="display: none;">
+        <button class="rating-btn again" onclick="rateCard(0)">
+          <span>Again</span>
+          <span class="interval" id="interval-again"></span>
+        </button>
+        <button class="rating-btn hard" onclick="rateCard(3)">
+          <span>Hard</span>
+          <span class="interval" id="interval-hard"></span>
+        </button>
+        <button class="rating-btn good" onclick="rateCard(4)">
+          <span>Good</span>
+          <span class="interval" id="interval-good"></span>
+        </button>
+        <button class="rating-btn easy" onclick="rateCard(5)">
+          <span>Easy</span>
+          <span class="interval" id="interval-easy"></span>
+        </button>
+      </div>
+      <div class="card-action-bar" id="card-action-bar">
+        <button class="card-action-btn" onclick="flipCard()">Flip</button>
+        <button class="card-action-btn" id="card-edit-btn" onclick="editStudyCard()">Edit</button>
+        <button class="card-action-btn delete-btn" onclick="deleteStudyCard()">Delete</button>
+      </div>
     </div>
 
     <div class="session-complete" id="session-complete" style="display: none;">
@@ -1016,7 +1027,17 @@ function startStudy() {
   var due = getDueCards();
   if (due.length === 0) return;
 
-  studyQueue = due.sort(function() { return Math.random() - 0.5; });
+  // Group cards by source so related cards appear together
+  var bySource = {};
+  due.forEach(function(c) {
+    var src = c.source || '_none_';
+    if (!bySource[src]) bySource[src] = [];
+    bySource[src].push(c);
+  });
+  // Shuffle the group order, keep cards within each group in their original order
+  var groups = Object.keys(bySource).sort(function() { return Math.random() - 0.5; });
+  studyQueue = [];
+  groups.forEach(function(src) { studyQueue = studyQueue.concat(bySource[src]); });
   studyIndex = 0;
   isFlipped = false;
   sessionStats = { reviewed: 0, again: 0, hard: 0, good: 0, easy: 0 };
@@ -1037,9 +1058,6 @@ function showCurrentCard() {
 
   var card = studyQueue[studyIndex];
   isFlipped = false;
-  isEditing = false;
-  document.getElementById('card-edit-btn').textContent = 'Edit';
-
   document.getElementById('card-label').textContent = 'FRONT';
   document.getElementById('card-book').textContent = card.source ? card.source : '';
   document.getElementById('card-content').textContent = card.front;
@@ -1060,15 +1078,41 @@ function showCurrentCard() {
 
 function flipCard() {
   if (studyIndex >= studyQueue.length) return;
-  if (isFlipped) return;
 
-  isFlipped = true;
   var card = studyQueue[studyIndex];
 
-  document.getElementById('card-label').textContent = 'BACK';
-  document.getElementById('card-content').textContent = card.back;
-  document.getElementById('tap-hint').style.display = 'none';
-  document.getElementById('rating-buttons').style.display = 'grid';
+  if (!isFlipped) {
+    isFlipped = true;
+    document.getElementById('card-label').textContent = 'BACK';
+    document.getElementById('card-content').textContent = card.back;
+    document.getElementById('tap-hint').style.display = 'none';
+    document.getElementById('rating-buttons').style.display = 'grid';
+  } else {
+    isFlipped = false;
+    document.getElementById('card-label').textContent = 'FRONT';
+    document.getElementById('card-content').textContent = card.front;
+    document.getElementById('tap-hint').style.display = 'block';
+    document.getElementById('rating-buttons').style.display = 'none';
+  }
+}
+
+function deleteStudyCard() {
+  if (studyIndex >= studyQueue.length) return;
+
+  var card = studyQueue[studyIndex];
+  var cards = loadCards().filter(function(c) { return c.id !== card.id; });
+  saveCards(cards);
+
+  studyQueue.splice(studyIndex, 1);
+
+  if (studyQueue.length === 0) {
+    finishSession();
+  } else {
+    if (studyIndex >= studyQueue.length) studyIndex = studyQueue.length - 1;
+    isFlipped = false;
+    showCurrentCard();
+  }
+  showToast('Card deleted');
 }
 
 function rateCard(quality) {
@@ -1289,6 +1333,16 @@ function saveEdit(e) {
   saveCards(cards);
   closeEditModal();
   renderBrowse();
+  // Refresh the study card if we're in a study session
+  if (studyIndex < studyQueue.length && studyQueue[studyIndex].id === id) {
+    studyQueue[studyIndex].front = card.front;
+    studyQueue[studyIndex].back = card.back;
+    studyQueue[studyIndex].source = card.source;
+    studyQueue[studyIndex].chapter = card.chapter;
+    studyQueue[studyIndex].tags = card.tags;
+    document.getElementById('card-content').textContent = isFlipped ? card.back : card.front;
+    document.getElementById('card-book').textContent = card.source || '';
+  }
   showToast('Card updated');
 }
 
@@ -1451,50 +1505,11 @@ function exportCSV() {
 }
 
 
-// ==================== INLINE CARD EDITING ====================
-var isEditing = false;
-
-function toggleEditMode() {
+// ==================== STUDY CARD EDITING ====================
+function editStudyCard() {
   if (studyIndex >= studyQueue.length) return;
-  
-  if (!isEditing) {
-    // Enter edit mode
-    isEditing = true;
-    var card = studyQueue[studyIndex];
-    var currentText = isFlipped ? card.back : card.front;
-    var contentEl = document.getElementById('card-content');
-    contentEl.innerHTML = '<textarea class="card-edit-textarea" id="card-edit-area" onclick="event.stopPropagation()">' + escapeHtml(currentText) + '</textarea>';
-    document.getElementById('card-edit-btn').textContent = 'Save';
-    document.getElementById('card-edit-area').focus();
-  } else {
-    // Save edit
-    isEditing = false;
-    var card = studyQueue[studyIndex];
-    var newText = document.getElementById('card-edit-area').value.trim();
-    
-    if (newText) {
-      if (isFlipped) {
-        card.back = newText;
-      } else {
-        card.front = newText;
-      }
-      
-      // Save to storage
-      var cards = loadCards();
-      for (var i = 0; i < cards.length; i++) {
-        if (cards[i].id === card.id) {
-          if (isFlipped) cards[i].back = newText;
-          else cards[i].front = newText;
-          break;
-        }
-      }
-      saveCards(cards);
-    }
-    
-    document.getElementById('card-content').textContent = isFlipped ? card.back : card.front;
-    document.getElementById('card-edit-btn').textContent = 'Edit';
-    showToast('Card updated');
-  }
+  var card = studyQueue[studyIndex];
+  openEditModal(card.id);
 }
 
 // ==================== KEYBOARD SHORTCUTS ====================
@@ -1538,7 +1553,59 @@ function showToast(msg) {
   setTimeout(function() { toast.classList.remove('show'); }, 2500);
 }
 
+// ==================== SEED DATA ====================
+function seedCardsIfEmpty() {
+  var existing = loadCards();
+  if (existing.length > 0) return; // already have cards
+
+  var today = todayStr();
+  var seed = [
+    // Ancient English phrases
+    {front: 'Long bent I toward you, but that bent I will...', back: 'break', source: 'Ancient English Phrases', tags: ['proverbs']},
+    {front: 'The cat would eat fish and would not...', back: 'wet her feet', source: 'Ancient English Phrases', tags: ['proverbs']},
+    {front: 'They must hunger in frost that will not...', back: 'work in heat', source: 'Ancient English Phrases', tags: ['proverbs']},
+    {front: 'He that will thrive must ask leave of his wife; But your wife will...', back: 'give none', source: 'Ancient English Phrases', tags: ['proverbs']},
+    // Google Sheets
+    {front: 'What is the Name Box in Google Sheets?', back: 'The small box at the top left that shows the cell reference (like "A1" or "B5")', source: 'Google Sheets', tags: ['spreadsheets']},
+    {front: 'How do I delete rows from a certain point in Google Sheets?', back: 'Click Name Box, type "17:1000" (or desired range), press Enter. Right-click and select Delete rows.', source: 'Google Sheets', tags: ['spreadsheets']},
+    {front: 'How do I delete columns from a certain point in Google Sheets?', back: 'Use Name Box with column syntax (like "C:Z"), press Enter. Right-click and select Delete columns.', source: 'Google Sheets', tags: ['spreadsheets']},
+    {front: 'What do I put in the Name Box to select rows 17 down?', back: '17:1000 (or use a higher number if you need more rows)', source: 'Google Sheets', tags: ['spreadsheets']},
+    // Thinking, Fast and Slow
+    {front: 'What is anchoring?', back: 'The first number you hear pulls your estimate toward it, even if it is irrelevant.', source: 'Thinking, Fast and Slow', tags: ['heuristics', 'biases']},
+    {front: 'What is the availability heuristic?', back: 'You judge how likely something is by how easily examples come to mind.', source: 'Thinking, Fast and Slow', tags: ['heuristics', 'biases']},
+    {front: 'What is the representativeness heuristic?', back: 'You judge probability by how much something resembles a stereotype, ignoring base rates.', source: 'Thinking, Fast and Slow', tags: ['heuristics', 'biases']},
+    {front: 'What is loss aversion?', back: 'Losses hurt about twice as much as equivalent gains feel good.', source: 'Thinking, Fast and Slow', tags: ['heuristics', 'biases']},
+    {front: 'What is the halo effect?', back: 'Liking one quality of a person or thing makes you rate everything else about them positively too.', source: 'Thinking, Fast and Slow', tags: ['heuristics', 'biases']},
+    {front: 'What is WYSIATI?', back: 'What You See Is All There Is. You build confident stories from only the information available, never asking what is missing.', source: 'Thinking, Fast and Slow', tags: ['heuristics', 'biases']},
+    {front: 'What is substitution (in decision-making)?', back: 'When facing a hard question, your brain secretly swaps it for an easier one and answers that instead.', source: 'Thinking, Fast and Slow', tags: ['heuristics', 'biases']},
+    {front: 'What is regression to the mean?', back: 'Extreme performances are naturally followed by more average ones. People invent false causal stories to explain this.', source: 'Thinking, Fast and Slow', tags: ['heuristics', 'biases']},
+    {front: 'What is the framing effect?', back: 'How a choice is worded changes decisions, even when the options are mathematically identical.', source: 'Thinking, Fast and Slow', tags: ['heuristics', 'biases']},
+    {front: 'What is overconfidence bias?', back: 'People systematically overestimate how much they know and how accurate their predictions are.', source: 'Thinking, Fast and Slow', tags: ['heuristics', 'biases']},
+  ];
+
+  var cards = seed.map(function(c) {
+    return {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      front: c.front,
+      back: c.back,
+      source: c.source || '',
+      chapter: c.chapter || '',
+      tags: c.tags || [],
+      ef: 2.5,
+      interval: 0,
+      repetitions: 0,
+      dueDate: today,
+      created: today,
+      lastReviewed: null,
+      totalReviews: 0,
+    };
+  });
+
+  saveCards(cards);
+}
+
 // ==================== INIT ====================
+seedCardsIfEmpty();
 renderDashboard();
 </script>
 </body>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head><title>Loading cards...</title></head>
+<body style="background:#1a1a2e;color:#eee;font-family:Georgia;display:flex;align-items:center;justify-content:center;height:100vh;">
+<h2>Loading Curry cards into SuperMemo...</h2>
+<script>
+var cards = JSON.parse(localStorage.getItem('sm2_flashcards') || '[]');
+var today = new Date().toISOString().split('T')[0];
+var newCards = [
+  {front: "What is Curry's \"neither one of us can quit\" rule?", back: "Neither partner can quit on the same day. When one is struggling, the other recognizes it and steps up to carry more of the load."},
+  {front: "What does Curry mean by \"run towards the tension\"?", back: "Don't avoid daily friction in a relationship. Lean into it, because working through tension is what builds deeper togetherness."},
+  {front: "According to Curry, what is the key to supporting your partner?", back: "Know them well enough to recognize when they need support, and be willing to carry more of the load when they can't."},
+];
+newCards.forEach(function(c) {
+  cards.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    front: c.front,
+    back: c.back,
+    source: 'Steph Curry (Michelle Obama Podcast)',
+    chapter: '',
+    tags: ['relationships', 'marriage'],
+    ef: 2.5,
+    interval: 0,
+    repetitions: 0,
+    dueDate: today,
+    created: today,
+    lastReviewed: null,
+    totalReviews: 0
+  });
+});
+localStorage.setItem('sm2_flashcards', JSON.stringify(cards));
+window.location.href = 'index.html';
+</script>
+</body>
+</html>

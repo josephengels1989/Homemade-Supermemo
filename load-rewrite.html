@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head><title>Rewriting cards...</title></head>
+<body style="background:#1a1a2e;color:#eee;font-family:Georgia;display:flex;align-items:center;justify-content:center;height:100vh;">
+<h2>Rewriting cards...</h2>
+<script>
+var cards = JSON.parse(localStorage.getItem('sm2_flashcards') || '[]');
+var today = new Date().toISOString().split('T')[0];
+
+// Remove old versions of these cards
+cards = cards.filter(function(c) {
+  return c.source !== 'Steph Curry (Michelle Obama Podcast)' && c.source !== 'Devereaux (Escalation Traps)';
+});
+
+var newCards = [
+  // Curry
+  {front: "Curry's relationship rule: Neither partner can _____ on the same day.", back: 'quit', source: 'Steph Curry (Michelle Obama Podcast)', tags: ['relationships', 'marriage']},
+  {front: "Curry says don't run away from daily tension. Run _____ it.", back: 'towards', source: 'Steph Curry (Michelle Obama Podcast)', tags: ['relationships', 'marriage']},
+  {front: "When your partner is struggling, step up and carry more of the _____.", back: 'load', source: 'Steph Curry (Michelle Obama Podcast)', tags: ['relationships', 'marriage']},
+  // Devereaux
+  {front: "When backing down costs more than continuing, both sides are stuck in an escalation _____.", back: 'trap', source: 'Devereaux (Escalation Traps)', tags: ['strategy', 'conflict', 'game-theory']},
+  {front: "In an escalation trap, neither side can afford to be the one that backs _____.", back: 'down', source: 'Devereaux (Escalation Traps)', tags: ['strategy', 'conflict', 'game-theory']},
+  {front: "Every day an escalation trap continues, both sides get weaker, poorer, and less _____.", back: 'secure', source: 'Devereaux (Escalation Traps)', tags: ['strategy', 'conflict', 'game-theory']},
+];
+
+newCards.forEach(function(c) {
+  cards.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    front: c.front,
+    back: c.back,
+    source: c.source,
+    chapter: '',
+    tags: c.tags,
+    ef: 2.5,
+    interval: 0,
+    repetitions: 0,
+    dueDate: today,
+    created: today,
+    lastReviewed: null,
+    totalReviews: 0
+  });
+});
+
+localStorage.setItem('sm2_flashcards', JSON.stringify(cards));
+window.location.href = 'index.html';
+</script>
+</body>
+</html>

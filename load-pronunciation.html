@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head><title>Loading cards...</title></head>
+<body style="background:#1a1a2e;color:#eee;font-family:Georgia;display:flex;align-items:center;justify-content:center;height:100vh;">
+<h2>Loading 80 cards into Homemade SuperMemo...</h2>
+<script>
+var cards = JSON.parse(localStorage.getItem('sm2_flashcards') || '[]');
+var today = new Date().toISOString().split('T')[0];
+var newCards = [
+
+  // === SECTION 1: HISTORY ===
+  {front: 'Latin was the language of ancient ___.', back: 'Rome', tags: ['history']},
+  {front: 'Greek was the language of ancient ___.', back: 'Greece', tags: ['history']},
+  {front: 'Languages that evolved from Latin are called ___ languages.', back: 'Romance', tags: ['history']},
+  {front: 'The "Romance" in Romance languages comes from the word ___.', back: 'Rome', tags: ['history']},
+  {front: 'The Roman Empire fell in approximately ___ AD.', back: '476', tags: ['history']},
+  {front: 'Italy\'s Latin evolved into ___.', back: 'Italian', tags: ['history']},
+  {front: 'France\'s Latin evolved into ___.', back: 'French', tags: ['history']},
+  {front: 'Spain\'s Latin evolved into ___.', back: 'Spanish', tags: ['history']},
+  {front: 'English legal and government words tend to come from ___.', back: 'Latin', tags: ['history']},
+  {front: 'English science and philosophy words tend to come from ___.', back: 'Greek', tags: ['history']},
+  {front: 'Rome conquered Greece, but educated Romans spoke both Latin and ___.', back: 'Greek', tags: ['history']},
+  {front: 'Latin and Greek are from the same language family: true or false?', back: 'False', tags: ['history']},
+
+  // === SECTION 2: GREEK NUMBER PREFIXES ===
+  {front: 'Greek prefix for one: ___.', back: 'mono', tags: ['greek', 'numbers']},
+  {front: 'Greek prefix for two: ___.', back: 'di', tags: ['greek', 'numbers']},
+  {front: 'Greek prefix for three: ___.', back: 'tri', tags: ['greek', 'numbers']},
+  {front: 'Greek prefix for four: ___.', back: 'tetra', tags: ['greek', 'numbers']},
+  {front: 'Greek prefix for five: ___.', back: 'penta', tags: ['greek', 'numbers']},
+  {front: 'Greek prefix for six: ___.', back: 'hex', tags: ['greek', 'numbers']},
+  {front: 'Greek prefix for seven: ___.', back: 'hepta', tags: ['greek', 'numbers']},
+  {front: 'Greek prefix for ten: ___.', back: 'deca', tags: ['greek', 'numbers']},
+
+  // === SECTION 3: LATIN NUMBER PREFIXES ===
+  {front: 'Latin prefix for one: ___.', back: 'uni', tags: ['latin', 'numbers']},
+  {front: 'Latin prefix for two: ___.', back: 'bi', tags: ['latin', 'numbers']},
+  {front: 'Latin prefix for four: ___.', back: 'quad', tags: ['latin', 'numbers']},
+  {front: 'Latin prefix for five: ___.', back: 'quin', tags: ['latin', 'numbers']},
+  {front: 'Latin prefix for six: ___.', back: 'sex', tags: ['latin', 'numbers']},
+  {front: 'Latin prefix for seven: ___.', back: 'sept', tags: ['latin', 'numbers']},
+  {front: 'Latin prefix for eight: ___.', back: 'octo', tags: ['latin', 'numbers']},
+  {front: 'Latin prefix for ten: ___.', back: 'deci', tags: ['latin', 'numbers']},
+  {front: 'Latin prefix for hundred: ___.', back: 'cent', tags: ['latin', 'numbers']},
+  {front: 'Latin prefix for thousand: ___.', back: 'milli', tags: ['latin', 'numbers']},
+
+  // === SECTION 4: GREEK/LATIN PAIRS ===
+  {front: 'Greek "mono" and Latin ___ both mean "one."', back: 'uni', tags: ['pairs']},
+  {front: 'Greek "di" and Latin ___ both mean "two."', back: 'bi', tags: ['pairs']},
+  {front: 'Greek "tetra" and Latin ___ both mean "four."', back: 'quad', tags: ['pairs']},
+  {front: 'Greek "penta" and Latin ___ both mean "five."', back: 'quin', tags: ['pairs']},
+  {front: 'Greek "deca" and Latin ___ both mean "ten."', back: 'deci', tags: ['pairs']},
+  {front: 'Greek "poly" and Latin ___ both mean "many."', back: 'multi', tags: ['pairs']},
+
+  // === SECTION 5: DIRECTION/POSITION (LATIN) ===
+  {front: 'Latin prefix meaning "before": ___.', back: 'pre', tags: ['latin', 'direction']},
+  {front: 'Latin prefix meaning "after": ___.', back: 'post', tags: ['latin', 'direction']},
+  {front: 'Latin prefix meaning "between": ___.', back: 'inter', tags: ['latin', 'direction']},
+  {front: 'Latin prefix meaning "within": ___.', back: 'intra', tags: ['latin', 'direction']},
+  {front: 'Latin prefix meaning "outside": ___.', back: 'extra', tags: ['latin', 'direction']},
+  {front: 'Latin prefix meaning "under": ___.', back: 'sub', tags: ['latin', 'direction']},
+  {front: 'Latin prefix meaning "above": ___.', back: 'super', tags: ['latin', 'direction']},
+  {front: 'Latin prefix meaning "across": ___.', back: 'trans', tags: ['latin', 'direction']},
+
+  // === SECTION 6: SIZE/DEGREE ===
+  {front: 'Greek prefix for "small": ___.', back: 'micro', tags: ['greek', 'size']},
+  {front: 'Greek prefix for "large": ___.', back: 'macro', tags: ['greek', 'size']},
+  {front: 'Greek prefix for "great": ___.', back: 'mega', tags: ['greek', 'size']},
+  {front: 'Latin prefix for "many": ___.', back: 'multi', tags: ['latin', 'size']},
+  {front: 'Greek prefix for "many": ___.', back: 'poly', tags: ['greek', 'size']},
+  {front: 'Latin prefix for "all": ___.', back: 'omni', tags: ['latin', 'size']},
+
+  // === SECTION 7: GREEK ROOTS (LIFE/BODY/MIND) ===
+  {front: 'Greek root for "life": ___.', back: 'bio', tags: ['greek', 'roots']},
+  {front: 'Greek root for "mind" or "soul": ___.', back: 'psyche', tags: ['greek', 'roots']},
+  {front: 'Greek root for "body": ___.', back: 'soma', tags: ['greek', 'roots']},
+  {front: 'Greek root for "suffering" or "feeling": ___.', back: 'pathos', tags: ['greek', 'roots']},
+  {front: 'Greek root for "word" or "reason": ___.', back: 'logos', tags: ['greek', 'roots']},
+  {front: 'Greek root for "wisdom": ___.', back: 'sophia', tags: ['greek', 'roots']},
+  {front: 'Greek root for "human": ___.', back: 'anthropos', tags: ['greek', 'roots']},
+
+  // === SECTION 8: SUFFIXES ===
+  {front: 'The suffix meaning "study of": ___.', back: '-ology', tags: ['suffixes']},
+  {front: 'The suffix meaning "fear of": ___.', back: '-phobia', tags: ['suffixes']},
+  {front: 'The suffix meaning "love of": ___.', back: '-philia', tags: ['suffixes']},
+  {front: 'The suffix meaning "rule by": ___.', back: '-cracy', tags: ['suffixes']},
+  {front: 'The suffix meaning "rule" or "leadership": ___.', back: '-archy', tags: ['suffixes']},
+
+  // === SECTION 9: REVERSE (MEANING FROM PREFIX) ===
+  {front: '"Mono" means ___.', back: 'one', tags: ['reverse']},
+  {front: '"Bi" means ___.', back: 'two', tags: ['reverse']},
+  {front: '"Octo" means ___.', back: 'eight', tags: ['reverse']},
+  {front: '"Sub" means ___.', back: 'under', tags: ['reverse']},
+  {front: '"Trans" means ___.', back: 'across', tags: ['reverse']},
+  {front: '"Post" means ___.', back: 'after', tags: ['reverse']},
+  {front: '"Inter" means ___.', back: 'between', tags: ['reverse']},
+  {front: '"Bio" means ___.', back: 'life', tags: ['reverse']},
+  {front: '"Pathos" means ___.', back: 'suffering', tags: ['reverse']},
+  {front: '"Sophia" means ___.', back: 'wisdom', tags: ['reverse']},
+  {front: '"Logos" means ___.', back: 'word', tags: ['reverse']},
+  {front: '"Anthropos" means ___.', back: 'human', tags: ['reverse']},
+
+  // === SECTION 10: APPLICATION (BREAK APART THE WORD) ===
+  {front: '"Biology" literally means "the study of ___."', back: 'life', tags: ['application']},
+  {front: '"Philosophy" literally means "the love of ___."', back: 'wisdom', tags: ['application']},
+  {front: '"Anthropology" literally means "the study of ___."', back: 'humans', tags: ['application']},
+  {front: '"Monarchy" literally means "rule by ___."', back: 'one', tags: ['application']},
+  {front: '"Submarine" uses the Latin prefix for ___.', back: 'under', tags: ['application']},
+  {front: '"Transport" uses the Latin prefix for ___.', back: 'across', tags: ['application']},
+  {front: '"Psychosomatic" combines the Greek roots for mind and ___.', back: 'body', tags: ['application']},
+  {front: '"Bilingual" uses the Latin prefix for ___.', back: 'two', tags: ['application']},
+  {front: '"Omnivore" uses the Latin prefix for ___.', back: 'all', tags: ['application']},
+  {front: '"Microscope" uses the Greek prefix for ___.', back: 'small', tags: ['application']}
+];
+newCards.forEach(function(c) {
+  cards.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    front: c.front,
+    back: c.back,
+    source: 'Latin & Greek Roots',
+    chapter: '',
+    tags: c.tags,
+    ef: 2.5,
+    interval: 0,
+    repetitions: 0,
+    dueDate: today,
+    created: today,
+    lastReviewed: null,
+    totalReviews: 0
+  });
+});
+localStorage.setItem('sm2_flashcards', JSON.stringify(cards));
+window.location.href = 'index.html';
+</script>
+</body>
+</html>
